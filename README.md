@@ -81,16 +81,21 @@ Open `http://localhost:5173`.
 
 ## 4. Deploying (single Vercel project)
 
-Frontend and backend deploy together as one Vercel project, from the repo root:
-- The Vite frontend builds to static files.
-- `api/index.js` re-exports the Express app as a Vercel serverless function.
-- Root `vercel.json` installs/builds both and routes `/auth/*`, `/submissions/*`,
-  and `/health` to the function; everything else falls through to the static build.
+Frontend and backend deploy together as one Vercel project, rooted at `frontend/`:
+- The Vite frontend builds to static files as normal.
+- `frontend/api/index.js` re-exports the Express app (from `../../backend/src/app.js`)
+  as a Vercel serverless function.
+- `frontend/vercel.json` installs both `frontend` and `backend` dependencies,
+  builds the frontend, and routes `/auth/*`, `/submissions/*`, and `/health` to
+  the function; everything else falls through to the static build.
+
+(Root Directory has to be `frontend`, not the repo root — Vercel's Deploy
+button stays disabled if it can't detect a buildable project at the root.)
 
 Steps:
-1. [vercel.com/new](https://vercel.com/new) → import this repo. Leave **Root
-   Directory** as the repo root (not `frontend` or `backend`) — `vercel.json`
-   handles the install/build split itself.
+1. [vercel.com/new](https://vercel.com/new) → import this repo. Set **Root
+   Directory** to `frontend` (click "Edit" next to it). Vercel will pick up
+   `frontend/vercel.json` automatically for the install/build/rewrite config.
 2. Add environment variables (Project Settings → Environment Variables):
    - `SHEET_ID`, `SHEET_TAB_NAME`
    - `GOOGLE_OAUTH_CLIENT_ID`, `GOOGLE_OAUTH_CLIENT_SECRET`, `GOOGLE_OAUTH_REFRESH_TOKEN`
