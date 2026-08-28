@@ -79,12 +79,30 @@ npm run dev
 
 Open `http://localhost:5173`.
 
-## 4. Deploying
+## 4. Deploying (single Vercel project)
 
-- **Backend** → Render or Railway (Node web service). Set the same env vars from
-  `.env` in the host's dashboard, including the three `GOOGLE_OAUTH_*` values
-  (there's no key file to upload — the refresh token is the only secret to copy over).
-- **Frontend** → Vercel. Set `VITE_API_URL` to your deployed backend URL.
-- Update `FRONTEND_ORIGIN` on the backend to your deployed frontend URL, and
-  make sure both are served over HTTPS (required for the `secure` session cookie
-  in production).
+Frontend and backend deploy together as one Vercel project, from the repo root:
+- The Vite frontend builds to static files.
+- `api/index.js` re-exports the Express app as a Vercel serverless function.
+- Root `vercel.json` installs/builds both and routes `/auth/*`, `/submissions/*`,
+  and `/health` to the function; everything else falls through to the static build.
+
+Steps:
+1. [vercel.com/new](https://vercel.com/new) → import this repo. Leave **Root
+   Directory** as the repo root (not `frontend` or `backend`) — `vercel.json`
+   handles the install/build split itself.
+2. Add environment variables (Project Settings → Environment Variables):
+   - `SHEET_ID`, `SHEET_TAB_NAME`
+   - `GOOGLE_OAUTH_CLIENT_ID`, `GOOGLE_OAUTH_CLIENT_SECRET`, `GOOGLE_OAUTH_REFRESH_TOKEN`
+   - `JWT_SECRET`
+   - `REVIEWERS`
+   - `FRONTEND_ORIGIN` — set to the Vercel deployment URL once you know it
+     (can redeploy after the first deploy to fill this in)
+   - `VITE_API_URL` — leave **empty** (frontend and API share the same domain,
+     so requests are same-origin — no CORS or cross-site cookie config needed)
+3. Deploy. Once live, if `FRONTEND_ORIGIN` was a placeholder, update it to the
+   real `https://<project>.vercel.app` URL and redeploy.
+
+Because everything is same-origin in this setup, the session cookie works
+normally without the cross-site `SameSite=None` dance a split frontend/backend
+deployment would need.
